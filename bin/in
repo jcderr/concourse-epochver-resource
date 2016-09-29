@@ -29,4 +29,7 @@ output = []
 for value in json.loads(key_value)['versions']:
   output.append({"number": value})
 
+with open('version', 'w') as fh:
+    fh.write(output)
+
 print(json.dumps(output))

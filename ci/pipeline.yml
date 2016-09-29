@@ -10,13 +10,13 @@ resources:
   type: git
   source:
     uri: git@github.com:jcderr/concourse-epochver-resource.git
-    branch: master
+    branch: initial
     private_key: {{ssh-key}}
 - name: version
   type: epochver
   source:
-    access_key_id: {{access_key_id}}
-    secret_access_key: {{secret_access_key}}
+    access_key_id: {{s3-access-key-id}}
+    secret_access_key: {{s3-secret-access-key}}
     bucket: concourse-resource-testing
     key: test/concourse-run-test
 - name: docker
@@ -34,16 +34,16 @@ jobs:
   - put: docker
     params:
       build: source
-      tag: source/dev-tag
+      tag: source/ci/dev-tag
 - name: test-versioning
   plan:
   - get: docker
     trigger: true
     passed: [build-container]
-  - get: epochver
+  - get: version
     params:
       bump:
         build: true
-  - put: epochver
+  - put: version
     params:
-      file: epochver/version
+      file: version/version
