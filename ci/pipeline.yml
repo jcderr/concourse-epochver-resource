@@ -1,0 +1,49 @@
+---
+resource_types:
+- name: epochver
+  type: docker-image
+  source:
+    repository: jcderr/concourse-epochver-resource
+    tag: dev
+resources:
+- name: source
+  type: git
+  source:
+    uri: git@github.com:jcderr/concourse-epochver-resource.git
+    branch: master
+    private_key: {{ssh-key}}
+- name: version
+  type: epochver
+  source:
+    access_key_id: {{access_key_id}}
+    secret_access_key: {{secret_access_key}}
+    bucket: concourse-resource-testing
+    key: test/concourse-run-test
+- name: docker
+  type: docker-image
+  source:
+    email: {{docker-email}}
+    password: {{docker-password}}
+    repository: jcderr/concourse-epochver-resource
+    username: {{docker-user}}
+jobs:
+- name: build-container
+  plan:
+  - get: source
+    trigger: true
+  - put: docker
+    params:
+      build: source
+      tag: source/dev-tag
+- name: test-versioning
+  plan:
+  - get: docker
+    trigger: true
+    passed: [build-container]
+  - get: epochver
+    params:
+      bump:
+        build: true
+  - put: epochver
+    params:
+      file: epochver/version
